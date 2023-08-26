@@ -3,6 +3,7 @@ import torch.nn as nn
 import torch.optim as optim
 import numpy as np
 from paddle import Paddle
+import game
 
 # Define your neural network architecture for the Q-network
 class QNetwork(nn.Module):
@@ -113,15 +114,17 @@ input_size = 4  # Change this based on your state representation
 output_size = 2  # Change this based on your action space
 learning_rate = 0.001
 gamma = 0.99
-replay_buffer_size = 100
+replay_buffer_size = 1000
 batch_size= 10
+target_network_update_frequency = 100
+num_episodes = 10
 
 # Initialize DQN agent
 dqn_agent = AIPaddle(input_size, output_size, learning_rate, gamma, replay_buffer_size, batch_size)
 
 # Training loop
 for episode in range(num_episodes):
-    state = env.reset()
+    state = game.PongGame.reset_game()
     done = False
     total_reward = 0
 

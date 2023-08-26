@@ -6,8 +6,9 @@ print("-----------------------------")
 print("            PONG             ")
 print("-----------------------------")
 print("[*] For Human against AI press 1?")
-print("[*] For AI against AI press 2?")
-gameoption = input("[*] Select [1/2]: ")
+print("[*] For AI againstx AI press 2?")
+#gameoption = input("[*] Select [1/2]: ")
+gameoption = "1"
 
 if gameoption == "1":
     # Create one human player paddles
