@@ -104,6 +104,56 @@ class PongGame:
         x,y=self.ball.rect.center
         return x,y
 
+    def get_game_state(self):
+        """ returns a dictionary about the game state """
+        game_state = {
+            'ball_x': self.ball.rect.x,
+            'ball_y': self.ball.rect.y,
+            'paddle1': self.paddle1.rect.y,
+            'paddle2': self.paddle2.rect.y,
+            'scoreA': self.scoreA,
+            'scoreB': self.scoreB
+        }
+        return game_state
+
+    def step(self,ai_action):
+        """  take aktion and receive feedback """
+        self.AIPaddle.move(ai_action)
+        self.all_sprites_list.update()
+        self.collision_detection()
+        self.draw()
+        done = self.scoreA >=3 or self.scoreB >=3
+        reward =  1 if self.player_score > self.ai_score else -1 if self.ai_score > self.player_score else 0
+        next_state = self.get_game_state()  # Implement your method to get the game state
+        return next_state, reward, done
+    
+    def playAIAI(self):
+        # Set up the clock
+        clock = pygame.time.Clock()
+        # Main game loop
+        while self.carryOn:
+            # Event handling
+            CarryOn = self.event_handeling()
+            # ball position
+            ball_x, ball_y = self.get_ball_position()  
+            # AI Paddle movement  
+            self.paddle1.move(ball_y=ball_y)
+            self.paddle2.move(ball_y=ball_y)
+            # Update game objects
+            self.all_sprites_list.update()
+            self.collision_detection()
+            # drawing
+            self.draw()
+            # Main event loop
+            CarryOn = self.event_handeling()
+            # Check for game over
+            # if self.scoreA or self.scoreB >= 1000:
+            #     pygame.quit()
+            #     return
+            # Tick the clock
+            clock.tick(60)
+
+
     def playHumanAI(self):
         # Set up the clock
         clock = pygame.time.Clock()
@@ -122,54 +172,13 @@ class PongGame:
 
             self.paddle2.move(ball_y=ball_y)
             #self.paddle2.move(AI.ai_move(ball_y=self.ball.rect.y,paddle_y=self.paddle2.rect.y))
- 
             # Update game objects
-            self.all_sprites_list.update()
-            
+            self.all_sprites_list.update()       
             # Collision detection
             self.collision_detection()
-
             # Drawing
             self.draw()
-       
             # event handeling
             CarryOn = self.event_handeling()
-
             # Tick the clock
             clock.tick(60)
-
-
-    def playAIAI(self):
-        # Set up the clock
-        clock = pygame.time.Clock()
-        # Main game loop
-        while self.carryOn:
-            # Event handling
-            CarryOn = self.event_handeling()
-            # ball position
-            ball_x,ball_y = self.get_ball_position()
-            
-            # AI Paddle movement  
-            self.paddle1.move(ball_y=ball_y)
-            self.paddle2.move(ball_y=ball_y)
-            
-            # Update game objects
-            self.all_sprites_list.update()
-            
-            self.collision_detection()
-
-            # drawing
-            self.draw()
-            
-            # Main event loop
-            CarryOn = self.event_handeling()
-
-            # Check for game over
-            # if self.scoreA or self.scoreB >= 1000:
-            #     pygame.quit()
-            #     return
-
-            # Tick the clock
-            clock.tick(60)
-
-

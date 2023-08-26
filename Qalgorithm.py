@@ -20,7 +20,9 @@ class QNetwork(nn.Module):
 
 # Define your DQN AIPaddle agent using PyTorch
 class AIPaddle(Paddle):
-    def __init__(self, input_size, output_size, learning_rate, gamma, replay_buffer_size, batch_size):
+    def __init__(self, input_size, output_size, learning_rate,
+                  gamma, replay_buffer_size, batch_size,
+                  target_network_update_frequency,num_episodes):
         super().__init__()
         # network 
         self.q_network = QNetwork(input_size, output_size)
@@ -37,6 +39,13 @@ class AIPaddle(Paddle):
         self.replay_buffer_size = replay_buffer_size
         # batch size
         self.batch_size = batch_size
+
+        self.input_size = input_size  # Change this based on your state representation
+        self.output_size = output_size  # Change this based on your action space
+        self.learning_rate = learning_rate 
+        self.replay_buffer_size = replay_buffer_size
+        self.target_network_update_frequency = target_network_update_frequency
+        self.num_episodes = num_episodes
 
 
     def choose_action(self, state):
@@ -109,40 +118,43 @@ class AIPaddle(Paddle):
         self.target_q_network.load_state_dict(self.q_network.state_dict())
         self.target_q_network.eval()
 
-# Define hyperparameters
-input_size = 4  # Change this based on your state representation
-output_size = 2  # Change this based on your action space
-learning_rate = 0.001
-gamma = 0.99
-replay_buffer_size = 1000
-batch_size= 10
-target_network_update_frequency = 100
-num_episodes = 10
+    def train(self):
+        for episode in range(self.num_episodes):
+            state = game.PongGame.get_game_state()
+            done = False
+            total_reward = 0
 
-# Initialize DQN agent
-dqn_agent = AIPaddle(input_size, output_size, learning_rate, gamma, replay_buffer_size, batch_size)
+            while not done:
+                action = self.choose_action(state)
+                next_state, reward, done = game.PongGame.step(action)
+                self.store_experience(state, action, reward, next_state, done)
 
-# Training loop
-for episode in range(num_episodes):
-    state = game.PongGame.reset_game()
-    done = False
-    total_reward = 0
+                batch = self.sample_batch()
+                self.train_q_network(batch)
 
-    while not done:
-        action = dqn_agent.choose_action(state)
-        next_state, reward, done, _ = env.step(action)
-        dqn_agent.store_experience(state, action, reward, next_state, done)
+                state = next_state
+                total_reward += reward
 
-        batch = dqn_agent.sample_batch()
-        dqn_agent.train_q_network(batch)
+            if episode % self.target_network_update_frequency == 0:
+                self.update_target_network()
 
-        state = next_state
-        total_reward += reward
+            print(f"Episode {episode + 1}, Total Reward: {total_reward}")
+        # Save the trained Q-network
+        self.save_model('dqn_model.pth')
 
-    if episode % target_network_update_frequency == 0:
-        dqn_agent.update_target_network()
+if __name__ == "__main__":
+    # Initialize DQN agent
+    input_size = 6
+    output_size = 2
+    learning_rate = 0.001
+    gamma = 0.9
+    replay_buffer_size = 10000
+    batch_size = 32
+    target_network_update_frequency = 4
+    num_episodes = 10
+    aipaddle = AIPaddle(input_size, output_size, learning_rate,
+                         gamma, replay_buffer_size, batch_size,
+                         target_network_update_frequency,
+                         num_episodes)
+    aipaddle.train()
 
-    print(f"Episode {episode + 1}, Total Reward: {total_reward}")
-
-# Save the trained Q-network
-dqn_agent.save_model('dqn_model.pth')
