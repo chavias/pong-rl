@@ -18,7 +18,7 @@ class QNetwork(nn.Module):
         x = torch.relu(self.fc2(x))
         return self.fc3(x)
 
-# Define your DQN agent using PyTorch
+# Define your DQN AIPaddle agent using PyTorch
 class AIPaddle(Paddle):
     def __init__(self, input_size, output_size, learning_rate, gamma, replay_buffer_size, batch_size):
         super().__init__()
