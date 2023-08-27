@@ -1,6 +1,7 @@
 import pygame
 from random import randint
 from numpy import sign
+from numpy import random
 
 BLACK = (0,0,0)
 WHITE = (255,255,255)
@@ -17,7 +18,7 @@ class Ball(pygame.sprite.Sprite):
         # Draw the ball (a rectangle!)
         pygame.draw.rect(self.image, color, [0, 0, width, height])
         
-        self.velocity = [-1,-1] #[randint(4,8),randint(-8,8)]
+        self.velocity = [6,6] #[randint(4,8),randint(-8,8)]
         
         # Fetch the rectangle object that has the dimensions of the image.
         self.rect = self.image.get_rect()
