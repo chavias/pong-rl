@@ -5,6 +5,7 @@ import numpy as np
 from paddle import Paddle
 import game
 
+
 # Define your neural network architecture for the Q-network
 class QNetwork(nn.Module):
     def __init__(self, input_size, output_size):
@@ -39,7 +40,6 @@ class AIPaddle(Paddle):
         self.replay_buffer_size = replay_buffer_size
         # batch size
         self.batch_size = batch_size
-
         self.input_size = input_size  # Change this based on your state representation
         self.output_size = output_size  # Change this based on your action space
         self.learning_rate = learning_rate 
@@ -51,9 +51,9 @@ class AIPaddle(Paddle):
     def choose_action(self, state):
         """ following the gradient without exploration """
         with torch.no_grad():
-            q_values = self.q_network(torch.tensor(state, dtype=torch.float32))
+            state_tensor = torch.tensor(list(state.values()), dtype=torch.float32)
+            q_values = self.q_network(state_tensor)
             action = q_values.argmax().item()
-
         return action
         
 
@@ -76,20 +76,31 @@ class AIPaddle(Paddle):
         states, actions, rewards, next_states, dones = zip(*batch)
         return states, actions, rewards, next_states, dones
 
+    def sample_batch(self):
+        if len(self.replay_buffer) < self.batch_size:
+            return None  # Not enough experiences in the replay buffer
+        # Randomly sample a batch of experiences
+        batch_indices = np.random.choice(len(self.replay_buffer), self.batch_size, replace=False)
+        batch = [self.replay_buffer[i] for i in batch_indices]
+        # Separate the batch into individual components (states, actions, rewards, etc.)
+        #states, actions, rewards, next_states, dones = zip(*batch)
+        #return states, actions, rewards, next_states, dones
+        return batch
 
-    def train_q_network(self, batch):
-        states, actions, rewards, next_states, dones = batch
+    def train_q_network(self, states, actions, rewards, next_states, dones):
         # Convert batch components to PyTorch tensors
-        states = torch.tensor(states, dtype=torch.float32)
+        states_list = [torch.tensor(list(state.values()), dtype=torch.float32) for state in states]
+        states_tensor = torch.stack(states_list)
         actions = torch.tensor(actions, dtype=torch.int64)
         rewards = torch.tensor(rewards, dtype=torch.float32)
-        next_states = torch.tensor(next_states, dtype=torch.float32)
+        next_states_list = [torch.tensor(list(next_state.values()), dtype=torch.float32) for next_state in next_states]
+        next_states_tensor = torch.stack(next_states_list)
         dones = torch.tensor(dones, dtype=torch.float32)
         # Compute Q-values for the current states using the Q-network
-        q_values = self.q_network(states)
+        q_values = self.q_network(states_tensor)
         selected_q_values = q_values.gather(1, actions.unsqueeze(1)).squeeze(1)
         # Compute target Q-values using the target Q-network
-        target_q_values = rewards + self.gamma * self.target_q_network(next_states).max(1).values * (1 - dones)
+        target_q_values = rewards + self.gamma * self.target_q_network(next_states_tensor).max(1).values * (1 - dones)
         # Calculate the loss (Mean Squared Error)
         loss = self.loss_fn(selected_q_values, target_q_values.detach())
         # Update the Q-network using backpropagation
@@ -102,8 +113,8 @@ class AIPaddle(Paddle):
         self.target_q_network.load_state_dict(self.q_network.state_dict())
 
 
-    def move(self, ball_y):
-        action = self.choose_action(game_state)
+    def move(self, action):
+        #action = self.choose_action(state)
         super().move(action * 5) 
 
 
@@ -118,19 +129,21 @@ class AIPaddle(Paddle):
         self.target_q_network.load_state_dict(self.q_network.state_dict())
         self.target_q_network.eval()
 
-    def train(self):
+    def train(self,game):
+        print("Starting training")
         for episode in range(self.num_episodes):
-            state = game.PongGame.get_game_state()
+            state = game.get_game_state()
             done = False
             total_reward = 0
-
             while not done:
                 action = self.choose_action(state)
-                next_state, reward, done = game.PongGame.step(action)
+                next_state, reward, done = game.step(action)
                 self.store_experience(state, action, reward, next_state, done)
 
                 batch = self.sample_batch()
-                self.train_q_network(batch)
+                if batch is not None:
+                    states, actions, rewards, next_states, dones = zip(*batch)
+                    self.train_q_network(states, actions, rewards, next_states, dones)
 
                 state = next_state
                 total_reward += reward
@@ -152,9 +165,11 @@ if __name__ == "__main__":
     batch_size = 32
     target_network_update_frequency = 4
     num_episodes = 10
+    paddle1 = Paddle()
     aipaddle = AIPaddle(input_size, output_size, learning_rate,
                          gamma, replay_buffer_size, batch_size,
                          target_network_update_frequency,
                          num_episodes)
-    aipaddle.train()
+    Pgame = game.PongGame(paddle1,aipaddle)
+    aipaddle.train(Pgame)
 

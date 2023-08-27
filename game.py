@@ -66,7 +66,8 @@ class PongGame:
         self.scoreA = 0
         self.scoreB = 0
 
-    def collision_detection(self):            #Check if the ball is bouncing against any of the 4 walls:
+    def collision_detection(self):            
+        #Check if the ball is bouncing against any of the 4 walls:
         if self.ball.rect.x>=690:
             if self.scoreA+1>1:
                 self.reset_game()
@@ -118,12 +119,13 @@ class PongGame:
 
     def step(self,ai_action):
         """  take aktion and receive feedback """
-        self.AIPaddle.move(ai_action)
+        self.paddle1.move()
+        self.paddle2.move(ai_action)
         self.all_sprites_list.update()
         self.collision_detection()
         self.draw()
         done = self.scoreA >=3 or self.scoreB >=3
-        reward =  1 if self.player_score > self.ai_score else -1 if self.ai_score > self.player_score else 0
+        reward =  1 if self.scoreA > self.scoreB else -1 if self.scoreA > self.scoreB else 0
         next_state = self.get_game_state()  # Implement your method to get the game state
         return next_state, reward, done
     
