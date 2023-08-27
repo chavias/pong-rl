@@ -62,11 +62,9 @@ class AIPaddle(Paddle):
                     list(state.values()), dtype=torch.float32)
                 q_values = self.q_network(state_tensor)
                 # Choose the action with the highest Q-value (1 or -1)
-                if q_values[0] > q_values[1]:
-                    action = 0
-                else:
-                    action = 1
+            action = torch.argmax(q_values).item()  # Choose action with highest Q-value index
         return action
+
 
     def store_experience(self, state, action, reward, next_state, done):
         # Store experience in replay buffer
@@ -122,6 +120,8 @@ class AIPaddle(Paddle):
             super().move(action-1 * 5)
         if action==1:
             super().move(action * 5)
+        if action==3:
+            super().move(0)
 
     def save_model(self, path):
         # Save model weights
@@ -166,8 +166,8 @@ class AIPaddle(Paddle):
 if __name__ == "__main__":
     # Initialize DQN agent
     epsilon = 0.9
-    input_size = 6
-    output_size = 2
+    input_size = 3
+    output_size = 3
     learning_rate = 0.001
     gamma = 0.9
     replay_buffer_size = 500
@@ -180,8 +180,8 @@ if __name__ == "__main__":
                         gamma, replay_buffer_size, batch_size,
                         target_network_update_frequency,
                         num_episodes)
-        if os.path.isfile("dqn_model_32_no_global_reward.pth"): # if this is changed change network size
-            aipaddle.load_model("dqn_model_no_global_reward.pth")
+        if os.path.isfile("3_parameter.pth"): # if this is changed change network size
+            aipaddle.load_model("3_paramter.pth")
         Pgame = game.PongGame(paddle1, aipaddle)
         aipaddle.train(Pgame)
         epsilon -=0.05

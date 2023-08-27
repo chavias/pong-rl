@@ -139,9 +139,6 @@ class PongGame:
             'ball_x': self.ball.rect.x,
             'ball_y': self.ball.rect.y,
             'paddle1': self.paddle1.rect.y,
-            'paddle2': self.paddle2.rect.y,
-            'scoreA': self.scoreA,
-            'scoreB': self.scoreB
         }
         return game_state
 
@@ -155,7 +152,7 @@ class PongGame:
         reward = self.collision_detection()
         self.draw()
         CarryOn = self.event_handeling_learning()
-        done = self.scoreA >= 10 or self.scoreB >= 10
+        done = self.scoreA >= 30 or self.scoreB >= 30
         if done: 
             self.scoreA = 0
             self.scoreB = 0
