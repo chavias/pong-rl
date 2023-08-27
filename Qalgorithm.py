@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import numpy as np
-from paddle import Paddle
+from paddle import Paddle, Hardcode_Paddle
 import game
 
 
@@ -147,7 +147,6 @@ class AIPaddle(Paddle):
 
                 state = next_state
                 total_reward += reward
-
             if episode % self.target_network_update_frequency == 0:
                 self.update_target_network()
 
@@ -161,11 +160,11 @@ if __name__ == "__main__":
     output_size = 2
     learning_rate = 0.001
     gamma = 0.9
-    replay_buffer_size = 10000
+    replay_buffer_size = 100
     batch_size = 32
     target_network_update_frequency = 4
     num_episodes = 10
-    paddle1 = Paddle()
+    paddle1 = Hardcode_Paddle()
     aipaddle = AIPaddle(input_size, output_size, learning_rate,
                          gamma, replay_buffer_size, batch_size,
                          target_network_update_frequency,

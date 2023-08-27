@@ -27,3 +27,18 @@ class Paddle(pygame.sprite.Sprite):
         elif self.rect.y > 400:
           self.rect.y = 400
 
+class Hardcode_Paddle(Paddle):
+    '''This class represents a AIpaddle. It derives from the Paddle class'''
+        
+    def move(self,ball_y):
+        """ Implements moving """
+        #ball_x,ball_y = self.ball.rect.center
+        if ball_y > self.rect.center[1]:# and self.rect.y<400:
+            self.rect.y += 5  # Move paddle down speed can be adjusted
+        elif ball_y < self.rect.center[1]:# and self.rect.y>0:
+            self.rect.y -= 5  # Move paddle up
+        #Check that you are not going too far (off the screen)
+        if self.rect.y < 0:
+          self.rect.y = 0
+        elif self.rect.y > 400:
+          self.rect.y = 400

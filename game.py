@@ -119,14 +119,18 @@ class PongGame:
 
     def step(self,ai_action):
         """  take aktion and receive feedback """
-        self.paddle1.move()
+        clock = pygame.time.Clock()
+        _, ball_y = self.get_ball_position()
+        self.paddle1.move(ball_y=ball_y)
         self.paddle2.move(ai_action)
         self.all_sprites_list.update()
         self.collision_detection()
         self.draw()
+        CarryOn = self.event_handeling()
         done = self.scoreA >=3 or self.scoreB >=3
         reward =  1 if self.scoreA > self.scoreB else -1 if self.scoreA > self.scoreB else 0
         next_state = self.get_game_state()  # Implement your method to get the game state
+        clock.tick(60)
         return next_state, reward, done
     
     def playAIAI(self):
