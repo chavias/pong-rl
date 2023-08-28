@@ -9,7 +9,7 @@ WHITE = (255,255,255)
 class Ball(pygame.sprite.Sprite):
     # This class represents the ball. It derives from the "Sprite" class.
 
-    def __init__(self, width=10, height=10, color=WHITE):
+    def __init__(self, width=1, height=1, color=WHITE):
         super().__init__()
         self.image = pygame.Surface([width,height])
         self.image.fill(BLACK)

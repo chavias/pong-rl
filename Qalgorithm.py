@@ -100,7 +100,7 @@ class AIPaddle(Paddle):
         # Calculate Q-values for the next states
         next_q_values = self.target_q_network(next_states_tensor)
         # Calculate the selected Q-values using actions_tensor
-        selected_q_values = q_values.gather(1, actions_tensor.unsqueeze(1)).squeeze(1) # might need action_tensor.unsqueezed(1)
+        selected_q_values = q_values.gather(1, actions_tensor.unsqueeze(1)).squeeze(1) 
         # Calculate the target Q-values for training
         target_q_values = rewards_tensor + self.gamma * (1 - dones_tensor) * next_q_values.max(1).values
         # Calculate the loss
@@ -120,7 +120,7 @@ class AIPaddle(Paddle):
             super().move(action-1 * 5)
         if action==1:
             super().move(action * 5)
-        if action==3:
+        if action==2:
             super().move(0)
 
     def save_model(self, path):
@@ -160,7 +160,7 @@ class AIPaddle(Paddle):
 
             print(f"Episode {episode + 1}, Total Reward: {total_reward}")
         # Save the trained Q-network
-        self.save_model('dqn_model_32.pth')
+        self.save_model('dqn2.pth')
 
 
 if __name__ == "__main__":
@@ -168,20 +168,22 @@ if __name__ == "__main__":
     epsilon = 0.9
     input_size = 3
     output_size = 3
-    learning_rate = 0.001
+    learning_rate = 0.006
     gamma = 0.9
-    replay_buffer_size = 500
+    replay_buffer_size = 1000
     batch_size = 32
     target_network_update_frequency = 4
-    num_episodes = 1000
+    num_episodes = 100
     paddle1 = Hardcode_Paddle()
-    while epsilon >= -0.05:
+    while epsilon >= 0:
+        print(f"Learing rate: {learning_rate}")
         aipaddle = AIPaddle(epsilon,input_size, output_size, learning_rate,
                         gamma, replay_buffer_size, batch_size,
                         target_network_update_frequency,
                         num_episodes)
-        if os.path.isfile("3_parameter.pth"): # if this is changed change network size
-            aipaddle.load_model("3_paramter.pth")
+        if os.path.isfile("dqn2.pth"): # if this is changed change network size
+            aipaddle.load_model("dqn2.pth")
         Pgame = game.PongGame(paddle1, aipaddle)
         aipaddle.train(Pgame)
-        epsilon -=0.05
+        epsilon-=0.05
+        learning_rate = round(learning_rate/1.1,5)

@@ -19,7 +19,7 @@ class PongGame:
         self.paddle2 = paddle2
         self.paddle1.rect.x = 0
         self.paddle1.rect.y = 200
-        self.paddle2.rect.x = 690
+        self.paddle2.rect.x = 699
         self.paddle2.rect.y = 200
         self.ball = Ball()
         # This will be a list that will contain all the sprites we intend to use in our game.
@@ -65,48 +65,49 @@ class PongGame:
         self.scoreA = 0
         self.scoreB = 0
 
-    def swept_collision_detection(self, ball, paddle_rect):
+    def swept_collision_detection_wall(self, ball):
+        # Predict the ball's position after a small time step
+        projected_x = ball.rect.x + ball.velocity[0]
+        projected_y = ball.rect.y + ball.velocity[1]   
+        # Check for collision with the right wall
+        if projected_x >= 699:
+            ball.velocity[0] = -ball.velocity[0]
+            ball.rect.x = 699  # Adjust position to avoid going beyond the wall
+        # Check for collision with the left wall
+            self.scoreB+=1
+        if projected_x <= 0 :
+            ball.velocity[0] = -ball.velocity[0]
+            ball.rect.x = 0 # Adjust position to avoid going beyond the wall
+        return 0  # No reward for wall collisions
+
+    def swept_collision_detection(self, ball, paddle1,paddle2):
         # Predict the ball's position after a small time step
         projected_x = ball.rect.x + ball.velocity[0]
         projected_y = ball.rect.y + ball.velocity[1]
-
-        # Check if the projected position collides with the paddle
-        if (paddle_rect.left < projected_x < paddle_rect.right and
-            paddle_rect.top < projected_y < paddle_rect.bottom):
-            # Adjust the ball's position to the collision point
-            ball.rect.x = projected_x
-            ball.rect.y = projected_y
-
+        ball.rect.x = projected_x
+        ball.rect.y = projected_y
+        reward = 0
+        if pygame.sprite.collide_rect(ball, paddle1):
             # Reflect the velocity as if bouncing off the paddle
             ball.velocity[0] = -ball.velocity[0]
-
+        if pygame.sprite.collide_rect(ball, paddle2):
+            ball.velocity[0] = -ball.velocity[0]
+            reward = 1
+        return reward
+        
     def collision_detection(self):
         reward = 0
         """ Simple collision detection with wall and Paddles """
-        if self.ball.rect.x >= 690:
-            if self.scoreA+1 > 500:
-                self.reset_game()
-            else:
-                self.scoreA += 1
-            self.ball.velocity[0] = -self.ball.velocity[0]
-            # self.ball.velocityReset()
-        if self.ball.rect.x <= 0:
-            if self.scoreB+1 > 500:
-                self.reset_game()
-            else:
-                self.scoreB += 1
-            self.ball.velocity[0] = -self.ball.velocity[0]
-            # self.ball.velocityReset()
         if self.ball.rect.y > 490:
             self.ball.velocity[1] = -self.ball.velocity[1]
         if self.ball.rect.y < 0:
             self.ball.velocity[1] = -self.ball.velocity[1]
+        reward = self.swept_collision_detection(self.ball, self.paddle1,self.paddle2)
+        self.swept_collision_detection_wall(self.ball)
         # Ball-paddle collision detection with swept collision handling
-        if pygame.sprite.collide_rect(self.ball, self.paddle1):
-            self.swept_collision_detection(self.ball, self.paddle1.rect)
-            reward = 0.1  # Small positive reward for hitting the paddle
-        elif pygame.sprite.collide_rect(self.ball, self.paddle2):
-            self.swept_collision_detection(self.ball, self.paddle2.rect)
+        # self.ball.velocity[0] = -self.ball.velocity[0]
+        # self.ball.velocity[0] = -self.ball.velocity[0]
+        # if self.swept_collision_detection(self.ball, self.paddle2.rect):
         return reward
 
     def event_handeling(self):
@@ -138,26 +139,24 @@ class PongGame:
         game_state = {
             'ball_x': self.ball.rect.x,
             'ball_y': self.ball.rect.y,
-            'paddle1': self.paddle1.rect.y,
+            'paddle1': self.paddle2.rect.y,
         }
         return game_state
 
     def step(self, ai_action):
         """  take aktion and receive feedback """
-#       clock = pygame.time.Clock()
+#        clock = pygame.time.Clock()
         _, ball_y = self.get_ball_position()
-        self.paddle1.move(ball_y=ball_y)
+        #self.paddle1.move(ball_y=ball_y)
         self.paddle2.move(ai_action)
         self.all_sprites_list.update()
         reward = self.collision_detection()
         self.draw()
         CarryOn = self.event_handeling_learning()
-        done = self.scoreA >= 30 or self.scoreB >= 30
+        done = self.scoreA >= 10 or self.scoreB >= 10
         if done: 
             self.scoreA = 0
             self.scoreB = 0
-   #     reward = 1 if self.scoreB > self.scoreA else - \
-    #        1 if self.scoreB < self.scoreA else 0
         next_state = self.get_game_state()  # Implement your method to get the game state
 #        clock.tick(60)
         return next_state, reward, done
