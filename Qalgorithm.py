@@ -105,7 +105,6 @@ class AIPaddle(Paddle):
         target_q_values = rewards_tensor + self.gamma * (1 - dones_tensor) * next_q_values.max(1).values
         # Calculate the loss
         loss = F.mse_loss(selected_q_values, target_q_values.detach())
-
         # Backpropagation and optimization step
         self.optimizer.zero_grad()
         loss.backward()
