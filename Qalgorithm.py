@@ -13,7 +13,7 @@ class QNetwork(nn.Module):
     def __init__(self, input_size, output_size):
         super(QNetwork, self).__init__()
         self.fc1 = nn.Linear(input_size, 32)
-        self.fc2 = nn.Linear(32, 32)
+        self.fc2 = nn.Linear(32, 32) # hiddenlayer
         self.fc3 = nn.Linear(32, output_size)
 
     def forward(self, x):
