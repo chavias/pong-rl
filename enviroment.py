@@ -1,6 +1,7 @@
 
 import pygame
 import random
+import numpy as np
 
 screen_width = 700
 screen_height = 500
@@ -26,8 +27,8 @@ class game:
         self.ball.y = 100 + random.uniform(-15,15)
         self.ball.vx = 5*random.choice([-1,1])
         self.ball.vy = 5*random.choice([-1,1])
-        return [self.ball.x, self.ball.y, self.ball.vx, self.ball.vy,
-                self.paddle_left.y, self.paddle_right.y] # not sure if this is right
+        return np.array([self.ball.x, self.ball.y, self.ball.vx, self.ball.vy,
+                self.paddle_left.y, self.paddle_right.y]) # not sure if this is right
 
     def step(self, action_left,action_right):
         """ step through the game """
@@ -38,8 +39,8 @@ class game:
         # perform collision detection
         terminated, reward1, reward2 = self.collision_detection()
         # collect observations
-        observation = (self.ball.x, self.ball.y, self.ball.vx, self.ball.vy,
-                        self.paddle_left.y, self.paddle_right.y)
+        observation = np.array([self.ball.x, self.ball.y, self.ball.vx, self.ball.vy,
+                        self.paddle_left.y, self.paddle_right.y])
         return observation, reward1, reward2, terminated
 
     def collision_detection(self) -> tuple:
