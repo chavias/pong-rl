@@ -17,11 +17,11 @@ class game:
     
     @staticmethod
     def sample():
-        return random.choice([1,2,3])
+        return random.choice([0,1,2])
 
     def reset(self):
         """ resets game to new state"""
-        self.paddel_left.y = 200
+        self.paddle_left.y = 200
         self.paddle_right.y = 200
         self.ball.x = 300 + random.uniform(-15,15)
         self.ball.y = 100 + random.uniform(-15,15)
@@ -53,17 +53,17 @@ class game:
         if self.ball.x <= 0:
             if (self.ball.y >= self.paddle_left.y - paddle_height/2 and
                 self.ball.y <= self.paddle_left.y + paddle_height/2):
-                self.ball.bounce_paddel()
+                self.ball.bounce_paddle()
                 reward1 = 1
             else: 
                 terminated = True
-        if self.ball.x <= screen_width:
-            if (self.ball.y >= self.paddle_right - paddle_height/2 and
-                self.ball.y <= self.paddle_right + paddle_height/2):
-                self.ball.bounce_paddel()
+        if self.ball.x >= screen_width:
+            if (self.ball.y >= self.paddle_right.y - paddle_height/2 and
+                self.ball.y <= self.paddle_right.y + paddle_height/2):
+                self.ball.bounce_paddle()
                 reward2 = 1  
             else: 
-                terminated = True      
+                terminated = True
         return terminated, reward1, reward2
 
 class Ball:  
@@ -82,7 +82,7 @@ class Ball:
         # updates velocity
         self.vy = -self.vy
 
-    def bounce_paddel(self):
+    def bounce_paddle(self):
         # updates velocity
         self.vx = -self.vy
 
