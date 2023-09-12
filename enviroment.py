@@ -2,11 +2,11 @@ import random
 import numpy as np
 import pygame
 import torch
-import DQN
+from Agent import Agent
 
 SCREEN_WIDTH = 700
 SCREEN_HEIGHT = 500
-PADDLE_HEIGHT = 50
+PADDLE_HEIGHT = 500
 PADDLE_WIDTH = 10
 BALL_SIZE = 5
 PADDLE_COLOR = (255,255,255)
@@ -57,9 +57,9 @@ class GameEngine():
         reward1 = 0
         reward2 = 0
         terminated = False
-        if self.ball.x >= SCREEN_WIDTH or self.ball.x <= 0:
+        if self.ball.y >= SCREEN_HEIGHT or self.ball.y <= 0:
             self.ball.bounce_wall()
-        if self.ball.x <= 0:
+        if self.ball.x <= 2:
             if (self.ball.y >= self.paddle_left.y - PADDLE_HEIGHT/2 and
                 self.ball.y <= self.paddle_left.y + PADDLE_HEIGHT/2):
                 self.ball.bounce_paddle()
@@ -67,7 +67,7 @@ class GameEngine():
             else: 
                 terminated = True
                 self.reset()
-        if self.ball.x >= SCREEN_WIDTH:
+        if self.ball.x >= SCREEN_WIDTH-2:
             if (self.ball.y >= self.paddle_right.y - PADDLE_HEIGHT/2 and
                 self.ball.y <= self.paddle_right.y + PADDLE_HEIGHT/2):
                 self.ball.bounce_paddle()
@@ -77,12 +77,12 @@ class GameEngine():
                 self.reset()
         return terminated, reward1, reward2
     
-    def draw(self,screen):
+    def draw(self):
         # Clear the screen
         self.screen.fill(BACKGROUND_COLOR)
         # Draw the paddles
-        self.paddel_left.draw(self.screen)
-        self.paddel_right.draw(self.screen)
+        self.paddle_left.draw(self.screen)
+        self.paddle_right.draw(self.screen)
         self.ball.draw(self.screen)
         # Update the display
         pygame.display.flip()
@@ -98,26 +98,32 @@ class GameEngine():
         return True
 
     def run(self,path_left,path_right):
-        agent_left = DQN.Agent(6,3)
-        agent_right = DQN.Agent(6,3)
-        agent_left.load_state_dict(torch.load(path_left))
-        agent_right.load_state_dict(torch.load(path_right))
-        agent_left.eval()
-        agent_right.eval()
+        agent_left = Agent(6,3)
+        agent_left.policy_net.load_state_dict(torch.load(path_left,map_location='cpu'))
+        agent_right = Agent(6,3)
+        agent_right.policy_net.load_state_dict(torch.load(path_right,map_location='cpu'))
+#        agent_left.eval()
+#        agent_right.eval()
         # Game loop
+        clock = pygame.time.Clock()
         carryOn = True
-        while not carryOn:
-            CarryOn = self.event_handeling()
+        while carryOn:
+            carryOn = self.event_handeling()
             self.ball.update()
             action_left, action_right = self.get_action_ai(agent_left,agent_right)
             self.paddle_left.update(action_left)
             self.paddle_right.update(action_right)
-            self.draw()           
+            terminated, _, _ = self.collision_detection()
+            if terminated:
+                self.reset()
+            self.draw()      
+            clock.tick(60)   
         pygame.quit()
     
     def get_action_ai(self,agent_left,agent_right):
         state = np.array([self.ball.x, self.ball.y, self.ball.vx, self.ball.vy,
                         self.paddle_left.y, self.paddle_right.y])
+        state = torch.tensor(state, dtype=torch.float32, device='cpu').unsqueeze(0)
         action_left =  agent_left.policy_net(state).max(1)[1].view(1, 1)
         action_right =  agent_right.policy_net(state).max(1)[1].view(1, 1)
         return action_left, action_right
@@ -141,9 +147,9 @@ class Ball:
 
     def bounce_paddle(self):
         # updates velocity
-        self.vx = -self.vy
+        self.vx = -self.vx
 
-    def draw(screen,self):
+    def draw(self,screen):
         pygame.draw.rect(screen,BALL_COLOR,(self.x - BALL_SIZE/2,
                                             self.y - BALL_SIZE/2,
                                             BALL_SIZE,

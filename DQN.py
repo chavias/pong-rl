@@ -52,15 +52,15 @@ class ReplayMemory:
 class DQN(nn.Module):
     def __init__(self, n_observations, n_actions):
         super(DQN, self).__init__()
-        self.layer1 = nn.Linear(n_observations, 32)
-        self.layer2 = nn.Linear(32, 32)
-        self.layer3 = nn.Linear(32, n_actions)
+        self.layer1 = nn.Linear(n_observations, 21)
+        #self.layer2 = nn.Linear(32, 32)
+        self.layer3 = nn.Linear(21, n_actions)
 
     # Called with either one element to determine next action, or a batch
     # during optimization. Returns tensor([[left0exp,right0exp]...]).
     def forward(self, x):
         x = F.relu(self.layer1(x))
-        x = F.relu(self.layer2(x))
+#        x = F.relu(self.layer2(x))
         return self.layer3(x)
 
 class Agent:
@@ -190,51 +190,6 @@ def optimize_model(agent,agent_id):
     torch.nn.utils.clip_grad_value_(agent.policy_net.parameters(), 100)
     agent.optimizer.step()
 
-
-######################################################################
-#
-# Below, you can find the main training loop. At the beginning we reset
-# the ironment and obtain the initial ``state`` Tensor. Then, we sample
-# an action, execute it, observe the next state and the reward (always
-# 1), and optimize our model once. When the episode ends (our model
-# fails), we restart the loop.
-#
-# Below, `num_episodes` is set to 600 if a GPU is available, otherwise 50 
-# episodes are scheduled so training does not take too long. However, 50 
-# episodes is insufficient for to observe good performance on CartPole.
-# You should see the model constantly achieve 500 steps within 600 training 
-# episodes. Training RL agents can be a noisy process, so restarting training
-# can produce better results if convergence is not observed.
-#
-
-episode_durations = []
-
-def plot_durations(show_result=False):
-    plt.figure(1)
-    durations_t = torch.tensor(episode_durations, dtype=torch.float)
-    if show_result:
-        plt.title('Result')
-    else:
-        plt.clf()
-        plt.title('Training...')
-    plt.xlabel('Episode')
-    plt.ylabel('Duration')
-    plt.plot(durations_t.numpy())
-    # Take 100 episode averages and plot them too
-    if len(durations_t) >= 100:
-        means = durations_t.unfold(0, 100, 1).mean(1).view(-1)
-        means = torch.cat((torch.zeros(99), means))
-        plt.plot(means.numpy())
-
-    plt.pause(0.001)  # pause a bit so that plots are updated
-    if is_ipython:
-        if not show_result:
-            display.display(plt.gcf())
-            display.clear_output(wait=True)
-        else:
-            display.display(plt.gcf())
-
-
 if torch.cuda.is_available():
     num_episodes = 600
 else:
@@ -275,7 +230,6 @@ for i_episode in range(num_episodes):
             target_net_state_dict_left[key] = policy_net_state_dict_left[key]*TAU + target_net_state_dict_left[key]*(1-TAU)
         agent_left.target_net.load_state_dict(target_net_state_dict_left)
 
-
         # Soft update of the target network's weights
         # θ′ ← τ θ + (1 −τ )θ′
         target_net_state_dict_right = agent_right.target_net.state_dict()
@@ -293,16 +247,3 @@ print('Complete')
 plot_durations(show_result=True)
 plt.ioff()
 plt.show()
-
-######################################################################
-# Here is the diagram that illustrates the overall resulting data flow.
-#
-# .. figure:: /_static/img/reinforcement_learning_diagram.jpg
-#
-# Actions are chosen either randomly or based on a policy, getting the next
-# step sample from the gym ironment. We record the results in the
-# replay memory and also run optimization step on every iteration.
-# Optimization picks a random batch from the replay memory to do training of the
-# new policy. The "older" target_net is also used in optimization to compute the
-# expected Q values. A soft update of its weights are performed at every step.
-#
