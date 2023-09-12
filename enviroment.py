@@ -59,7 +59,7 @@ class GameEngine():
         terminated = False
         if self.ball.y >= SCREEN_HEIGHT or self.ball.y <= 0:
             self.ball.bounce_wall()
-        if self.ball.x <= 2:
+        if self.ball.x <= 5:
             if (self.ball.y >= self.paddle_left.y - PADDLE_HEIGHT/2 and
                 self.ball.y <= self.paddle_left.y + PADDLE_HEIGHT/2):
                 self.ball.bounce_paddle()
@@ -67,7 +67,7 @@ class GameEngine():
             else: 
                 terminated = True
                 self.reset()
-        if self.ball.x >= SCREEN_WIDTH-2:
+        if self.ball.x >= SCREEN_WIDTH-5:
             if (self.ball.y >= self.paddle_right.y - PADDLE_HEIGHT/2 and
                 self.ball.y <= self.paddle_right.y + PADDLE_HEIGHT/2):
                 self.ball.bounce_paddle()

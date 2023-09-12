@@ -80,9 +80,9 @@ BATCH_SIZE = 20
 GAMMA = 0.99
 EPS_START = 0.9
 EPS_END = 0.05
-EPS_DECAY = 1000
-TAU = 0.005
-LR = 1e-4
+EPS_DECAY = 17000
+TAU = 0.005   # update rate of target network
+LR = 0.01#1e-4
 
 agent_left = Agent(n_observations=6,n_actions=3)
 agent_right = Agent(n_observations=6,n_actions=3)
@@ -197,7 +197,7 @@ def optimize_model(agent,agent_id):
 if torch.cuda.is_available():
     num_episodes = 1000
 else:
-    num_episodes = 5000
+    num_episodes = 20000
 
 for i_episode in range(num_episodes):
     # Initialize the environment and get it's state
@@ -211,7 +211,7 @@ for i_episode in range(num_episodes):
         reward_left = torch.tensor([reward_left], device=device)
         reward_right = torch.tensor([reward_right], device=device)
         if reward_left != 0 or reward_right !=0:
-            print(f"reward 1 : {reward_left} , reward 2: {reward_right}")
+            print(f"reward left : {reward_left} , reward right: {reward_right}")
         if terminated:
             next_state = None
         else:
@@ -248,10 +248,9 @@ for i_episode in range(num_episodes):
             plot_durations()
             break
 
+torch.save(agent_left.policy_net.state_dict(), "left_large_learing_rate.pth")
+torch.save(agent_right.policy_net.state_dict(), "right_large_learing_rate.pth")
 print('Complete')
-
-torch.save(agent_left.policy_net.state_dict(), "left_large_network.pth")
-torch.save(agent_right.policy_net.state_dict(), "right_large_network.pth")
 
 plot_durations(show_result=True)
 plt.ioff()
