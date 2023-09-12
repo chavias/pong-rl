@@ -63,7 +63,7 @@ class DQN(nn.Module):
         x = F.relu(self.layer2(x))
         return self.layer3(x)
 
-class agent:
+class Agent:
     def __init__(self,n_observations, n_actions):
         self.policy_net = DQN(n_observations, n_actions).to(device)
         self.target_net = DQN(n_observations, n_actions).to(device)
@@ -84,8 +84,8 @@ EPS_DECAY = 1000
 TAU = 0.005
 LR = 1e-4
 
-agent_left = agent(n_observations=6,n_actions=3)
-agent_right = agent(n_observations=6,n_actions=3)
+agent_left = Agent(n_observations=6,n_actions=3)
+agent_right = Agent(n_observations=6,n_actions=3)
 
 memory = ReplayMemory(10000)
 steps_done = 0

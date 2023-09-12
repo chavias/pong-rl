@@ -1,6 +1,8 @@
 import random
 import numpy as np
 import pygame
+import torch
+import DQN
 
 SCREEN_WIDTH = 700
 SCREEN_HEIGHT = 500
@@ -84,28 +86,43 @@ class GameEngine():
         self.ball.draw(self.screen)
         # Update the display
         pygame.display.flip()
-
     
-    
-    def event_handeling(self):
+    def event_handeling(self) -> bool:
         """ checks if programm should be terminated condition """
         for event in pygame.event.get():  # User did something
             if event.type == pygame.QUIT:  # If user clicked close
-                self.carryOn = False  # Flag that we are done so we exit this loop
+                return False  # Flag that we are done so we exit this loop
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:  # Pressing the x Key will quit the game
-                    self.carryOn = False
+                    return False
+        return True
 
-    def run(self):
+    def run(self,path_left,path_right):
+        agent_left = DQN.Agent(6,3)
+        agent_right = DQN.Agent(6,3)
+        agent_left.load_state_dict(torch.load(path_left))
+        agent_right.load_state_dict(torch.load(path_right))
+        agent_left.eval()
+        agent_right.eval()
         # Game loop
-        while not game_over:
-            self.event_handeling()
-            self.update()
-            self.draw()
-
-        # Clean up and exit
+        carryOn = True
+        while not carryOn:
+            CarryOn = self.event_handeling()
+            self.ball.update()
+            action_left, action_right = self.get_action_ai(agent_left,agent_right)
+            self.paddle_left.update(action_left)
+            self.paddle_right.update(action_right)
+            self.draw()           
         pygame.quit()
     
+    def get_action_ai(self,agent_left,agent_right):
+        state = np.array([self.ball.x, self.ball.y, self.ball.vx, self.ball.vy,
+                        self.paddle_left.y, self.paddle_right.y])
+        action_left =  agent_left.policy_net(state).max(1)[1].view(1, 1)
+        action_right =  agent_right.policy_net(state).max(1)[1].view(1, 1)
+        return action_left, action_right
+
+
 class Ball:  
     def __init__(self,x,y,vx,vy):
         self.x = x
