@@ -1,20 +1,27 @@
-
-import pygame
 import random
 import numpy as np
+import pygame
 
-screen_width = 700
-screen_height = 500
-paddle_height = 50
+SCREEN_WIDTH = 700
+SCREEN_HEIGHT = 500
+PADDLE_HEIGHT = 50
+PADDLE_WIDTH = 10
+BALL_SIZE = 5
+PADDLE_COLOR = (255,255,255)
+BALL_COLOR = (255,255,255)
+BACKGROUND_COLOR = (0,0,0)
+
 random.seed = 42
 
-
-class game:
-    def __init__(self):
+class GameEngine():
+    def __init__(self,initialize_pygame=False):
         self.paddle_left = Paddle(x=0,y=200)
         self.paddle_right = Paddle(x=699,y=200)
         self.ball = Ball(300,100,5,5)
-    
+        if initialize_pygame:
+            pygame.init()
+            self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+
     @staticmethod
     def sample():
         return random.choice([0,1,2])
@@ -48,24 +55,57 @@ class game:
         reward1 = 0
         reward2 = 0
         terminated = False
-        if self.ball.x >= screen_width or self.ball.x <= 0:
+        if self.ball.x >= SCREEN_WIDTH or self.ball.x <= 0:
             self.ball.bounce_wall()
         if self.ball.x <= 0:
-            if (self.ball.y >= self.paddle_left.y - paddle_height/2 and
-                self.ball.y <= self.paddle_left.y + paddle_height/2):
+            if (self.ball.y >= self.paddle_left.y - PADDLE_HEIGHT/2 and
+                self.ball.y <= self.paddle_left.y + PADDLE_HEIGHT/2):
                 self.ball.bounce_paddle()
                 reward1 = 1
             else: 
                 terminated = True
-        if self.ball.x >= screen_width:
-            if (self.ball.y >= self.paddle_right.y - paddle_height/2 and
-                self.ball.y <= self.paddle_right.y + paddle_height/2):
+                self.reset()
+        if self.ball.x >= SCREEN_WIDTH:
+            if (self.ball.y >= self.paddle_right.y - PADDLE_HEIGHT/2 and
+                self.ball.y <= self.paddle_right.y + PADDLE_HEIGHT/2):
                 self.ball.bounce_paddle()
                 reward2 = 1  
             else: 
                 terminated = True
+                self.reset()
         return terminated, reward1, reward2
+    
+    def draw(self,screen):
+        # Clear the screen
+        self.screen.fill(BACKGROUND_COLOR)
+        # Draw the paddles
+        self.paddel_left.draw(self.screen)
+        self.paddel_right.draw(self.screen)
+        self.ball.draw(self.screen)
+        # Update the display
+        pygame.display.flip()
 
+    
+    
+    def event_handeling(self):
+        """ checks if programm should be terminated condition """
+        for event in pygame.event.get():  # User did something
+            if event.type == pygame.QUIT:  # If user clicked close
+                self.carryOn = False  # Flag that we are done so we exit this loop
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:  # Pressing the x Key will quit the game
+                    self.carryOn = False
+
+    def run(self):
+        # Game loop
+        while not game_over:
+            self.event_handeling()
+            self.update()
+            self.draw()
+
+        # Clean up and exit
+        pygame.quit()
+    
 class Ball:  
     def __init__(self,x,y,vx,vy):
         self.x = x
@@ -86,6 +126,12 @@ class Ball:
         # updates velocity
         self.vx = -self.vy
 
+    def draw(screen,self):
+        pygame.draw.rect(screen,BALL_COLOR,(self.x - BALL_SIZE/2,
+                                            self.y - BALL_SIZE/2,
+                                            BALL_SIZE,
+                                            BALL_SIZE))    
+
 class Paddle:
     def __init__(self,x,y):
         self.x = x
@@ -97,7 +143,16 @@ class Paddle:
             self.y += pixles
         elif action == 2:
             self.y -= pixles
-        if self.y - paddle_height/2 < 0:
+        if self.y - PADDLE_HEIGHT/2 < 0:
           self.y = 0
-        elif self.y + paddle_height/2 > screen_height:
-          self.y = screen_height
+        elif self.y + PADDLE_HEIGHT/2 > SCREEN_HEIGHT:
+          self.y = SCREEN_HEIGHT
+
+    def draw(self, screen):
+        # Draw the paddle on the screen
+        pygame.draw.rect(screen, PADDLE_COLOR, (self.x - PADDLE_WIDTH/2,
+                                                self.y - PADDLE_HEIGHT/2,
+                                                PADDLE_WIDTH,
+                                                PADDLE_HEIGHT))
+
+    

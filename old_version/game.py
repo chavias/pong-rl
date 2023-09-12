@@ -1,5 +1,5 @@
 import pygame
-from paddle import Paddle
+from old_version.paddle import Paddle
 from ball import Ball
 import AI
 import time

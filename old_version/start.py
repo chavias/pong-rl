@@ -1,5 +1,5 @@
-from paddle import Paddle, AIPaddle
-from game import PongGame
+from old_version.paddle import Paddle, AIPaddle
+from old_version.game import PongGame
 import pygame
 #print("Which type of game to you want?")
 print("-----------------------------")

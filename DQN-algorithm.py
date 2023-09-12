@@ -1,4 +1,4 @@
-
+ 
 import enviroment
 import math
 import random
@@ -21,7 +21,7 @@ if is_ipython:
 plt.ion()
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-env = enviroment.game()
+env = enviroment.GameEngine()
 
 #######################################################################
 #                        Replay memory

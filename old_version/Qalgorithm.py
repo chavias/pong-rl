@@ -3,8 +3,8 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
 import numpy as np
-from paddle import Paddle, Hardcode_Paddle
-import game
+from old_version.paddle import Paddle, Hardcode_Paddle
+import old_version.game as game
 import os.path
 
 

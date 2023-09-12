@@ -1,6 +1,6 @@
 # Import the pygame library and initialise the game engine
 import pygame
-from paddle import Paddle
+from old_version.paddle import Paddle
 from ball import Ball
 #from random import randint
 import AI
