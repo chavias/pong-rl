@@ -6,7 +6,7 @@ from Agent import Agent
 
 SCREEN_WIDTH = 700
 SCREEN_HEIGHT = 500
-PADDLE_HEIGHT = 500
+PADDLE_HEIGHT = 50
 PADDLE_WIDTH = 10
 BALL_SIZE = 5
 PADDLE_COLOR = (255,255,255)
@@ -102,15 +102,13 @@ class GameEngine():
         agent_left.policy_net.load_state_dict(torch.load(path_left,map_location='cpu'))
         agent_right = Agent(6,3)
         agent_right.policy_net.load_state_dict(torch.load(path_right,map_location='cpu'))
-#        agent_left.eval()
-#        agent_right.eval()
-        # Game loop
         clock = pygame.time.Clock()
         carryOn = True
         while carryOn:
             carryOn = self.event_handeling()
             self.ball.update()
-            action_left, action_right = self.get_action_ai(agent_left,agent_right)
+            action_left= self.get_action_ai(agent_left)
+            action_right= self.get_action_ai(agent_right)
             self.paddle_left.update(action_left)
             self.paddle_right.update(action_right)
             terminated, _, _ = self.collision_detection()
@@ -119,15 +117,41 @@ class GameEngine():
             self.draw()      
             clock.tick(60)   
         pygame.quit()
+
+
+    def run_human(self,path_left,path_right):
+        agent_left = Agent(6,3)
+        agent_left.policy_net.load_state_dict(torch.load(path_left,map_location='cpu'))
+        clock = pygame.time.Clock()
+        carryOn = True
+        while carryOn:
+            carryOn = self.event_handeling()
+            self.ball.update()
+            action_left= self.get_action_ai(agent_left)
+            self.paddle_left.update(action_left)
+            action_human = self.action_human()
+            self.paddle_right.update(action_human)
+            terminated, _, _ = self.collision_detection()
+            if terminated:
+                self.reset()
+            self.draw()      
+            clock.tick(60)   
+        pygame.quit()
     
-    def get_action_ai(self,agent_left,agent_right):
+    def get_action_ai(self,agent):
         state = np.array([self.ball.x, self.ball.y, self.ball.vx, self.ball.vy,
                         self.paddle_left.y, self.paddle_right.y])
         state = torch.tensor(state, dtype=torch.float32, device='cpu').unsqueeze(0)
-        action_left =  agent_left.policy_net(state).max(1)[1].view(1, 1)
-        action_right =  agent_right.policy_net(state).max(1)[1].view(1, 1)
-        return action_left, action_right
-
+        #action_left =  agent_left.policy_net(state).max(1)[1].view(1, 1)
+        action =  agent.policy_net(state).max(1)[1].view(1, 1)
+        return action
+    
+    def action_human(self):
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_UP]:
+            return 2
+        if keys[pygame.K_DOWN]:
+            return 1
 
 class Ball:  
     def __init__(self,x,y,vx,vy):
@@ -160,16 +184,16 @@ class Paddle:
         self.x = x
         self.y = y
 
-    def update(self,action,pixles=5):
+    def update(self,action,pixles=8):
         # updates paddle positon depending on the action
         if action == 1:
             self.y += pixles
         elif action == 2:
             self.y -= pixles
         if self.y - PADDLE_HEIGHT/2 < 0:
-          self.y = 0
+          self.y = PADDLE_HEIGHT/2
         elif self.y + PADDLE_HEIGHT/2 > SCREEN_HEIGHT:
-          self.y = SCREEN_HEIGHT
+          self.y = SCREEN_HEIGHT - PADDLE_HEIGHT/2
 
     def draw(self, screen):
         # Draw the paddle on the screen

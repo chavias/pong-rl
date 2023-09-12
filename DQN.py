@@ -76,7 +76,7 @@ class Agent:
 #                        Initialization 
 #######################################################################
 
-BATCH_SIZE = 128
+BATCH_SIZE = 20
 GAMMA = 0.99
 EPS_START = 0.9
 EPS_END = 0.05
@@ -191,7 +191,7 @@ def optimize_model(agent,agent_id):
     agent.optimizer.step()
 
 if torch.cuda.is_available():
-    num_episodes = 600
+    num_episodes = 1000
 else:
     num_episodes = 1000
 
@@ -244,6 +244,10 @@ for i_episode in range(num_episodes):
             break
 
 print('Complete')
+
+torch.save(agent_left.policy_net.state_dict(), "left.pth")
+torch.save(agent_right.policy_net.state_dict(), "right.pth")
+
 plot_durations(show_result=True)
 plt.ioff()
 plt.show()
