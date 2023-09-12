@@ -193,7 +193,7 @@ def optimize_model(agent,agent_id):
 if torch.cuda.is_available():
     num_episodes = 1000
 else:
-    num_episodes = 1000
+    num_episodes = 5000
 
 for i_episode in range(num_episodes):
     # Initialize the environment and get it's state
@@ -245,8 +245,8 @@ for i_episode in range(num_episodes):
 
 print('Complete')
 
-torch.save(agent_left.policy_net.state_dict(), "left.pth")
-torch.save(agent_right.policy_net.state_dict(), "right.pth")
+torch.save(agent_left.policy_net.state_dict(), "left_large_network.pth")
+torch.save(agent_right.policy_net.state_dict(), "right_large_network.pth")
 
 plot_durations(show_result=True)
 plt.ioff()

@@ -129,7 +129,7 @@ class GameEngine():
             self.ball.update()
             action_left= self.get_action_ai(agent_left)
             self.paddle_left.update(action_left)
-            action_human = self.action_human()
+            action_human = self.get_action_human()
             self.paddle_right.update(action_human)
             terminated, _, _ = self.collision_detection()
             if terminated:
@@ -146,7 +146,7 @@ class GameEngine():
         action =  agent.policy_net(state).max(1)[1].view(1, 1)
         return action
     
-    def action_human(self):
+    def get_action_human(self):
         keys = pygame.key.get_pressed()
         if keys[pygame.K_UP]:
             return 2
