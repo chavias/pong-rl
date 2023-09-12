@@ -135,6 +135,10 @@ def plot_durations(show_result=False):
             display.display(plt.gcf())
 
 
+#######################################################################
+#                        Optimization 
+#######################################################################
+
 def optimize_model(agent,agent_id):
     ''' Change this funciton so both agents use the same memory but consider a different reward'''
     if len(memory) < BATCH_SIZE:
@@ -203,17 +207,18 @@ for i_episode in range(num_episodes):
         action_left = select_action(agent_left,state)
         action_right = select_action(agent_right,state)
 
-        observation, reward1, reward2, terminated= env.step(action_left.item(),action_right.item())
-        reward1 = torch.tensor([reward1], device=device)
-        reward2 = torch.tensor([reward2], device=device)
-
+        observation, reward_left, reward_right, terminated= env.step(action_left.item(),action_right.item())
+        reward_left = torch.tensor([reward_left], device=device)
+        reward_right = torch.tensor([reward_right], device=device)
+        if reward_left != 0 or reward_right !=0:
+            print(f"reward 1 : {reward_left} , reward 2: {reward_right}")
         if terminated:
             next_state = None
         else:
             next_state = torch.tensor(observation, dtype=torch.float32, device=device).unsqueeze(0)
 
         # Store the transition in memory
-        memory.push(state, action_left, action_right, next_state, reward1, reward2)
+        memory.push(state, action_left, action_right, next_state, reward_left, reward_right)
 
         # Move to the next state
         state = next_state
