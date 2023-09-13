@@ -1,4 +1,4 @@
 import enviroment as env 
 
 
-env.GameEngine(initialize_pygame=True).run_human('left_large_network.pth','right_large_network.pth')
+env.GameEngine(initialize_pygame=True).run('left_large_learing_rate.pth','right_large_learing_rate.pth')

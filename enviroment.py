@@ -38,7 +38,7 @@ class GameEngine():
         self.ball.vy = 5*random.choice([-1,1])
         return np.array([self.ball.x, self.ball.y, self.ball.vx, self.ball.vy,
                 self.paddle_left.y, self.paddle_right.y]) # not sure if this is right
-
+ 
     def step(self, action_left,action_right):
         """ step through the game """
         # update the game 
@@ -54,8 +54,8 @@ class GameEngine():
 
     def collision_detection(self) -> tuple:
         """ updates velocity of the ball """
-        reward1 = 0
-        reward2 = 0
+        reward_left = 0
+        reward_right = 0
         terminated = False
         if self.ball.y >= SCREEN_HEIGHT or self.ball.y <= 0:
             self.ball.bounce_wall()
@@ -63,19 +63,21 @@ class GameEngine():
             if (self.ball.y >= self.paddle_left.y - PADDLE_HEIGHT/2 and
                 self.ball.y <= self.paddle_left.y + PADDLE_HEIGHT/2):
                 self.ball.bounce_paddle()
-                reward1 = 1
+                reward_left = 1
             else: 
                 terminated = True
+                reward_left = -1
                 self.reset()
         if self.ball.x >= SCREEN_WIDTH-5:
             if (self.ball.y >= self.paddle_right.y - PADDLE_HEIGHT/2 and
                 self.ball.y <= self.paddle_right.y + PADDLE_HEIGHT/2):
                 self.ball.bounce_paddle()
-                reward2 = 1  
+                reward_right = 1  
             else: 
                 terminated = True
+                reward_right = -1
                 self.reset()
-        return terminated, reward1, reward2
+        return terminated, reward_left, reward_right
     
     def draw(self):
         # Clear the screen
@@ -203,3 +205,14 @@ class Paddle:
                                                 PADDLE_HEIGHT))
 
     
+if __name__ == "__main__":
+    # import pstats
+    # game = GameEngine()
+    # cProfile.run("game.step(action_left=1,action_right=2)",filename="step.prof")
+
+    # profiler = pstats.Stats('step.prof')
+    # profiler.sort_stats('cumulative')
+    # profiler.print_stats(5)
+
+    game = GameEngine()
+    game.step(1,2)

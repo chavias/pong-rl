@@ -12,6 +12,7 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
 
+import cProfile
 
 # set up matplotlib
 is_ipython = 'inline' in matplotlib.get_backend()
@@ -76,13 +77,13 @@ class Agent:
 #                        Initialization 
 #######################################################################
 
-BATCH_SIZE = 20
-GAMMA = 0.99
+BATCH_SIZE = 128
+GAMMA = 0.9#0.99
 EPS_START = 0.9
 EPS_END = 0.05
 EPS_DECAY = 17000
 TAU = 0.005   # update rate of target network
-LR = 0.01#1e-4
+LR = 0.1#1e-4
 
 agent_left = Agent(n_observations=6,n_actions=3)
 agent_right = Agent(n_observations=6,n_actions=3)
@@ -195,63 +196,75 @@ def optimize_model(agent,agent_id):
     agent.optimizer.step()
 
 if torch.cuda.is_available():
-    num_episodes = 1000
+    num_episodes = 50
 else:
-    num_episodes = 20000
+    num_episodes = 20
 
-for i_episode in range(num_episodes):
-    # Initialize the environment and get it's state
-    state = env.reset()
-    state = torch.tensor(state, dtype=torch.float32, device=device).unsqueeze(0)
-    for t in count():
-        action_left = select_action(agent_left,state)
-        action_right = select_action(agent_right,state)
 
-        observation, reward_left, reward_right, terminated= env.step(action_left.item(),action_right.item())
-        reward_left = torch.tensor([reward_left], device=device)
-        reward_right = torch.tensor([reward_right], device=device)
-        if reward_left != 0 or reward_right !=0:
-            print(f"reward left : {reward_left} , reward right: {reward_right}")
-        if terminated:
-            next_state = None
-        else:
-            next_state = torch.tensor(observation, dtype=torch.float32, device=device).unsqueeze(0)
+def RUN():
+    for i_episode in range(num_episodes):
+        # Initialize the environment and get it's state
+        state = env.reset()
+        state = torch.tensor(state, dtype=torch.float32, device=device).unsqueeze(0)
+        for t in count():
+            action_left = select_action(agent_left,state)
+            action_right = select_action(agent_right,state)
 
-        # Store the transition in memory
-        memory.push(state, action_left, action_right, next_state, reward_left, reward_right)
+            observation, reward_left, reward_right, terminated= env.step(action_left.item(),action_right.item())
+            reward_left = torch.tensor([reward_left], device=device)
+            reward_right = torch.tensor([reward_right], device=device)
+            if reward_left != 0 or reward_right !=0:
+                print(f"reward left : {reward_left} , reward right: {reward_right}")
+            if terminated:
+                next_state = None
+            else:
+                next_state = torch.tensor(observation, dtype=torch.float32, device=device).unsqueeze(0)
 
-        # Move to the next state
-        state = next_state
+            # Store the transition in memory
+            memory.push(state, action_left, action_right, next_state, reward_left, reward_right)
 
-        # Perform one step of the optimization (on the policy network)
-        optimize_model(agent_left,agent_id="left")
-        optimize_model(agent_right,agent_id='right')
+            # Move to the next state
+            state = next_state
 
-        # Soft update of the target network's weights
-        # θ′ ← τ θ + (1 −τ )θ′
-        target_net_state_dict_left = agent_left.target_net.state_dict()
-        policy_net_state_dict_left = agent_left.policy_net.state_dict()
-        for key in policy_net_state_dict_left:
-            target_net_state_dict_left[key] = policy_net_state_dict_left[key]*TAU + target_net_state_dict_left[key]*(1-TAU)
-        agent_left.target_net.load_state_dict(target_net_state_dict_left)
+            # Perform one step of the optimization (on the policy network)
+            optimize_model(agent_left,agent_id="left")
+            optimize_model(agent_right,agent_id='right')
 
-        # Soft update of the target network's weights
-        # θ′ ← τ θ + (1 −τ )θ′
-        target_net_state_dict_right = agent_right.target_net.state_dict()
-        policy_net_state_dict_right = agent_right.policy_net.state_dict()
-        for key in policy_net_state_dict_right:
-            target_net_state_dict_right[key] = policy_net_state_dict_right[key]*TAU + target_net_state_dict_right[key]*(1-TAU)
-        agent_right.target_net.load_state_dict(target_net_state_dict_right)
+            # Soft update of the target network's weights
+            # θ′ ← τ θ + (1 −τ )θ′
+            target_net_state_dict_left = agent_left.target_net.state_dict()
+            policy_net_state_dict_left = agent_left.policy_net.state_dict()
+            for key in policy_net_state_dict_left:
+                target_net_state_dict_left[key] = policy_net_state_dict_left[key]*TAU + target_net_state_dict_left[key]*(1-TAU)
+            agent_left.target_net.load_state_dict(target_net_state_dict_left)
 
-        if terminated:
-            episode_durations.append(t + 1)
-            plot_durations()
-            break
+            # Soft update of the target network's weights
+            # θ′ ← τ θ + (1 −τ )θ′
+            target_net_state_dict_right = agent_right.target_net.state_dict()
+            policy_net_state_dict_right = agent_right.policy_net.state_dict()
+            for key in policy_net_state_dict_right:
+                target_net_state_dict_right[key] = policy_net_state_dict_right[key]*TAU + target_net_state_dict_right[key]*(1-TAU)
+            agent_right.target_net.load_state_dict(target_net_state_dict_right)
 
-torch.save(agent_left.policy_net.state_dict(), "left_large_learing_rate.pth")
-torch.save(agent_right.policy_net.state_dict(), "right_large_learing_rate.pth")
-print('Complete')
+            if terminated:
+                #episode_durations.append(t + 1)
+                #plot_durations()
+                break
 
-plot_durations(show_result=True)
-plt.ioff()
-plt.show()
+    torch.save(agent_left.policy_net.state_dict(), "left_large_learing_rate.pth")
+    torch.save(agent_right.policy_net.state_dict(), "right_large_learing_rate.pth")
+    print('Complete')
+
+#    plot_durations(show_result=True)
+#    plt.ioff()
+#    plt.show()
+
+if __name__ == "__main__":
+    RUN()
+
+
+    # import pstats
+    # cProfile.run("RUN()",filename='RUN.prof')
+    # profiler = pstats.Stats('RUN.prof')
+    # profiler.sort_stats('cumulative')
+    # profiler.print_stats(5)
