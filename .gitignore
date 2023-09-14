@@ -1,5 +1,5 @@
 .vscode/
-.venv
+.venv/
 *.pth
 DQN-tutorial.py
 *.lprof
