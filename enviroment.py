@@ -4,11 +4,16 @@ import pygame
 import torch
 from Agent import Agent
 
-SCREEN_WIDTH = 700
-SCREEN_HEIGHT = 500
-PADDLE_HEIGHT = 50
-PADDLE_WIDTH = 10
+SCREEN_WIDTH = 700 #700
+SCREEN_HEIGHT = 500 #500
+
+PADDLE_HEIGHT = 50 # 50
+PADDLE_WIDTH = 10 # 10
+PADDLE_SPEED = 5  # 8
+
 BALL_SIZE = 5
+BALL_SPEED = 5 # 8
+
 PADDLE_COLOR = (255,255,255)
 BALL_COLOR = (255,255,255)
 BACKGROUND_COLOR = (0,0,0)
@@ -17,9 +22,9 @@ random.seed = 42
 
 class GameEngine():
     def __init__(self,initialize_pygame=False):
-        self.paddle_left = Paddle(x=0,y=200)
-        self.paddle_right = Paddle(x=699,y=200)
-        self.ball = Ball(300,100,5,5)
+        self.paddle_left = Paddle(x=0,y=SCREEN_HEIGHT//2)
+        self.paddle_right = Paddle(x=SCREEN_WIDTH,y=SCREEN_HEIGHT//2)
+        self.ball = Ball(SCREEN_WIDTH//2,SCREEN_HEIGHT//2,BALL_SPEED,BALL_SPEED)
         if initialize_pygame:
             pygame.init()
             self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
@@ -30,12 +35,14 @@ class GameEngine():
 
     def reset(self):
         """ resets game to new state"""
-        self.paddle_left.y = 200
-        self.paddle_right.y = 200
-        self.ball.x = 300 + random.uniform(-15,15)
-        self.ball.y = 100 + random.uniform(-15,15)
-        self.ball.vx = 5*random.choice([-1,1])
-        self.ball.vy = 5*random.choice([-1,1])
+        self.paddle_left.y = SCREEN_HEIGHT//2
+        self.paddle_right.y = SCREEN_HEIGHT//2
+        self.ball.x = SCREEN_WIDTH//2 \
+            + random.uniform(-SCREEN_HEIGHT//10,SCREEN_HEIGHT//10)
+        self.ball.y = SCREEN_HEIGHT//2 \
+            + random.uniform(-SCREEN_HEIGHT//10,SCREEN_HEIGHT//10)
+        self.ball.vx = BALL_SPEED*random.choice([-1,1])
+        self.ball.vy = BALL_SPEED*random.choice([-1,1])
         return np.array([self.ball.x, self.ball.y, self.ball.vx, self.ball.vy,
                 self.paddle_left.y, self.paddle_right.y]) # not sure if this is right
  
@@ -186,7 +193,7 @@ class Paddle:
         self.x = x
         self.y = y
 
-    def update(self,action,pixles=8):
+    def update(self,action,pixles=PADDLE_SPEED):
         # updates paddle positon depending on the action
         if action == 1:
             self.y += pixles
@@ -206,6 +213,7 @@ class Paddle:
 
     
 if __name__ == "__main__":
+
     # import pstats
     # game = GameEngine()
     # cProfile.run("game.step(action_left=1,action_right=2)",filename="step.prof")
