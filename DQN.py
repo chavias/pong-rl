@@ -77,18 +77,18 @@ class Agent:
 #                        Initialization 
 #######################################################################
 
-BATCH_SIZE = 128
+BATCH_SIZE = 12
 GAMMA = 0.9#0.99
 EPS_START = 0.9
 EPS_END = 0.05
 EPS_DECAY = 17000
 TAU = 0.005   # update rate of target network
-LR = 0.1#1e-4
+LR = 0.01#1e-4
 
 agent_left = Agent(n_observations=6,n_actions=3)
 agent_right = Agent(n_observations=6,n_actions=3)
 
-memory = ReplayMemory(10000)
+memory = ReplayMemory(10000) 
 steps_done = 0
 
 def select_action(agent, state):
@@ -107,12 +107,12 @@ def select_action(agent, state):
         return torch.tensor([[env.sample()]], device=device, dtype=torch.long)
 
 
-episode_durations = []
+rewards_ = []
 
 
-def plot_durations(show_result=False):
+def plot_rewards(show_result=False):
     plt.figure(1)
-    durations_t = torch.tensor(episode_durations, dtype=torch.float)
+    durations_t = torch.tensor(rewards_, dtype=torch.float)
     if show_result:
         plt.title('Result')
     else:
@@ -196,12 +196,18 @@ def optimize_model(agent,agent_id):
     agent.optimizer.step()
 
 if torch.cuda.is_available():
-    num_episodes = 50
+    num_episodes = 10000
 else:
-    num_episodes = 20
+    num_episodes = 30000
 
 
 def RUN():
+
+    reward_left_sum = 0
+    reward_right_sum = 0
+    reward_left_sum_list = []
+    reward_right_sum_list = []
+
     for i_episode in range(num_episodes):
         # Initialize the environment and get it's state
         state = env.reset()
@@ -213,6 +219,7 @@ def RUN():
             observation, reward_left, reward_right, terminated= env.step(action_left.item(),action_right.item())
             reward_left = torch.tensor([reward_left], device=device)
             reward_right = torch.tensor([reward_right], device=device)
+
             if reward_left != 0 or reward_right !=0:
                 print(f"reward left : {reward_left} , reward right: {reward_right}")
             if terminated:
@@ -247,17 +254,18 @@ def RUN():
             agent_right.target_net.load_state_dict(target_net_state_dict_right)
 
             if terminated:
-                #episode_durations.append(t + 1)
-                #plot_durations()
+                rewards_.append(reward_left)
+                plot_rewards()
                 break
 
-    torch.save(agent_left.policy_net.state_dict(), "left_large_learing_rate.pth")
-    torch.save(agent_right.policy_net.state_dict(), "right_large_learing_rate.pth")
+
+    torch.save(agent_left.policy_net.state_dict(), "left.pth")
+    torch.save(agent_right.policy_net.state_dict(), "right.pth")
     print('Complete')
 
-#    plot_durations(show_result=True)
-#    plt.ioff()
-#    plt.show()
+    plot_rewards(reward_right_sum_list)
+    plt.ioff()
+    plt.show()
 
 if __name__ == "__main__":
     RUN()

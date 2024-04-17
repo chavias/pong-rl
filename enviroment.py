@@ -111,7 +111,7 @@ class GameEngine():
         agent_left.policy_net.load_state_dict(torch.load(path_left,map_location='cpu'))
         agent_right = Agent(6,3)
         agent_right.policy_net.load_state_dict(torch.load(path_right,map_location='cpu'))
-        clock = pygame.time.Clock()
+        #clock = pygame.time.Clock()
         carryOn = True
         while carryOn:
             carryOn = self.event_handeling()
@@ -124,7 +124,7 @@ class GameEngine():
             if terminated:
                 self.reset()
             self.draw()      
-            clock.tick(60)   
+            #clock.tick(60)   
         pygame.quit()
 
 
