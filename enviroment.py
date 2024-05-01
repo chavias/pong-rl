@@ -107,9 +107,9 @@ class GameEngine():
         return True
 
     def run(self,path_left,path_right):
-        agent_left = Agent(6,3)
+        agent_left = Agent(5,3)
         agent_left.policy_net.load_state_dict(torch.load(path_left,map_location='cpu'))
-        agent_right = Agent(6,3)
+        agent_right = Agent(5,3)
         agent_right.policy_net.load_state_dict(torch.load(path_right,map_location='cpu'))
         #clock = pygame.time.Clock()
         carryOn = True
@@ -129,7 +129,7 @@ class GameEngine():
 
 
     def run_human(self,path_left,path_right):
-        agent_left = Agent(6,3)
+        agent_left = Agent(5,3)
         agent_left.policy_net.load_state_dict(torch.load(path_left,map_location='cpu'))
         clock = pygame.time.Clock()
         carryOn = True
@@ -149,7 +149,7 @@ class GameEngine():
     
     def get_action_ai(self,agent):
         state = np.array([self.ball.x, self.ball.y, self.ball.vx, self.ball.vy,
-                        self.paddle_left.y, self.paddle_right.y])
+                        self.paddle_left.y])
         state = torch.tensor(state, dtype=torch.float32, device='cpu').unsqueeze(0)
         #action_left =  agent_left.policy_net(state).max(1)[1].view(1, 1)
         action =  agent.policy_net(state).max(1)[1].view(1, 1)
