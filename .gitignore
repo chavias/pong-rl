@@ -4,3 +4,4 @@
 DQN-tutorial.py
 *.lprof
 *.prof
+.gitignore
