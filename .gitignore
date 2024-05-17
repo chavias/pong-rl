@@ -1,7 +1,6 @@
 .vscode/
 .venv/
 *.pth
-DQN-tutorial.py
 *.lprof
 *.prof
 .gitignore
